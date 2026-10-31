@@ -33,7 +33,7 @@ from pathlib import Path
 REPORT_PATH = Path(__file__).with_name("ssd-health-report.txt")
 HISTORY_PATH = Path(__file__).with_name("ssd-health-history.txt")
 PAGE_PATH = Path(__file__).with_name("ssd-health-report.html")
-PRODUCT_NAME = "Storage Health Check"
+PRODUCT_NAME = "QuickStorageHealthCheck"
 REPORT_BLOCKS: list = []
 TOOLS = Path(__file__).with_name("tools")
 SMARTCTL_VERSION = "7.5"

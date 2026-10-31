@@ -1,4 +1,4 @@
-# Storage Health Check
+# QuickStorageHealthCheck
 
 Read a drive’s health log on Windows or Mac and open the report in the browser on that computer.
 

@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$dest = Join-Path $env:LOCALAPPDATA "Storage Health Check"
+$dest = Join-Path $env:LOCALAPPDATA "QuickStorageHealthCheck"
 $tools = Join-Path $dest "tools"
 New-Item -ItemType Directory -Force -Path $tools | Out-Null
 Copy-Item -Force (Join-Path $root "ssd_health.py") $dest
@@ -34,13 +34,17 @@ if (-not $python -or -not (Test-Path $python)) {
     }
 }
 
-$shortcut = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Storage Health Check.lnk"
+$shortcut = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\QuickStorageHealthCheck.lnk"
+$oldShortcut = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Storage Health Check.lnk"
 $shell = New-Object -ComObject WScript.Shell
 $link = $shell.CreateShortcut($shortcut)
 $link.TargetPath = $python
 $link.Arguments = "`"$dest\ssd_health.py`""
 $link.WorkingDirectory = $dest
-$link.Description = "Storage Health Check"
+$link.Description = "QuickStorageHealthCheck"
 $link.Save()
-Write-Output "Storage Health Check is in the Start menu."
+if ((Test-Path $oldShortcut) -and ($oldShortcut -ne $shortcut)) {
+    Remove-Item -Force $oldShortcut
+}
+Write-Output "QuickStorageHealthCheck is in the Start menu."
 Write-Output "Open it, approve the administrator prompt, and the report opens in the browser on this computer."
