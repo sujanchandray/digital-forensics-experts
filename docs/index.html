@@ -3,296 +3,129 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="QuickStorageHealthCheck reads a drive on your computer and opens the report in the browser there. This website does not read your disk.">
+<meta name="description" content="Find digital forensics work or hire a specialist. QuickStorageHealthCheck remains a free download on this site.">
 <title>QuickStorageHealthCheck</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,560&family=Outfit:wght@380;500;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #050506;
-  --ink: #f6f3ec;
-  --muted: #a8a297;
-  --lime: #d6ff4a;
-  --line: rgba(246, 243, 236, 0.14);
-  --glass: rgba(246, 243, 236, 0.045);
-}
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: Outfit, "Segoe UI", sans-serif;
-  font-weight: 380;
-  line-height: 1.5;
-}
-.aurora, .grain {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-}
-.aurora {
-  background:
-    radial-gradient(42% 36% at 12% 8%, rgba(214, 255, 74, 0.22), transparent 62%),
-    radial-gradient(36% 32% at 88% 0%, rgba(255, 236, 210, 0.2), transparent 60%),
-    radial-gradient(28% 40% at 72% 88%, rgba(214, 255, 74, 0.1), transparent 64%);
-  animation: drift 18s ease-in-out infinite alternate;
-}
-.grain {
-  opacity: 0.22;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>");
-}
-@keyframes drift {
-  from { transform: translate3d(-2%, -1%, 0) scale(1); }
-  to { transform: translate3d(3%, 2%, 0) scale(1.06); }
-}
-.wrap { position: relative; z-index: 1; }
-.bar, .hero, .bento, .install, .close, footer {
-  width: min(1120px, calc(100% - 2.4rem));
-  margin-left: auto;
-  margin-right: auto;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1.1rem;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(5, 5, 6, 0.55);
-  backdrop-filter: blur(16px);
-}
-.word { color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: -0.03em; }
-.nav { display: flex; gap: 0.45rem; }
-.nav a, .actions a {
-  text-decoration: none;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-}
-.nav a { padding: 0.35rem 0.75rem; font-size: 0.86rem; }
-.hero {
-  min-height: calc(100vh - 5.5rem);
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(17rem, 0.78fr);
-  gap: 2.5rem;
-  align-items: center;
-  padding: 3.5rem 0 4rem;
-}
-h1 {
-  margin: 0;
-  font-size: clamp(3.2rem, 5.6vw, 5.5rem);
-  line-height: 0.88;
-  letter-spacing: -0.055em;
-  font-weight: 600;
-}
-h1 em {
-  font-family: Fraunces, Georgia, serif;
-  font-style: italic;
-  font-weight: 560;
-  color: var(--lime);
-}
-.lede { max-width: 34rem; font-size: 1.15rem; color: var(--muted); }
-.actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.6rem; }
-.actions a {
-  padding: 0.95rem 1.25rem;
-  background: var(--ink);
-  color: #111;
-  font-weight: 600;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-.actions a.ghost { background: transparent; color: var(--ink); }
-.trust { color: var(--lime); font-size: 0.95rem; }
-.card {
-  border: 1px solid var(--line);
-  border-radius: 1.4rem;
-  background: var(--glass);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
-  padding: 1.3rem 1.35rem 1.15rem;
-}
-.card p { margin: 0.2rem 0; }
-.eyebrow {
-  color: var(--muted);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-}
-.score { font-size: clamp(4rem, 8vw, 5.4rem); line-height: 0.9; letter-spacing: -0.06em; margin: 0.6rem 0 0.2rem; }
-.ok { color: var(--lime); font-weight: 600; }
-.rows { margin-top: 1rem; }
-.row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.55rem 0;
-  border-top: 1px solid var(--line);
-}
-.row span { color: var(--muted); }
-.bento {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
-  gap: 0.9rem;
-  padding-bottom: 4.5rem;
-}
-.tile {
-  border: 1px solid var(--line);
-  border-radius: 1.25rem;
-  padding: 1.25rem 1.2rem 1.3rem;
-  background: rgba(246, 243, 236, 0.03);
-  min-height: 11rem;
-}
-.tile.wide { grid-column: span 2; }
-.tile h2 { margin: 0.45rem 0 0.4rem; font-size: 1.45rem; letter-spacing: -0.03em; }
-.tile p { margin: 0; color: var(--muted); }
-.install { padding-bottom: 4rem; }
-.install h2 { font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.04em; margin: 0 0 1.4rem; }
-.rail {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  position: relative;
-}
-.rail::before {
-  content: "";
-  position: absolute;
-  top: 1.15rem;
-  left: 4%;
-  right: 4%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(214, 255, 74, 0.7), transparent);
-}
-.step { position: relative; padding-top: 2.4rem; }
-.num {
-  position: absolute;
-  top: 0;
-  width: 2.3rem;
-  height: 2.3rem;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--lime);
-  background: var(--bg);
-  color: var(--lime);
-  font-size: 0.85rem;
-}
-.step h3 { margin: 0.2rem 0; }
-.step p { margin: 0; color: var(--muted); }
-.close {
-  border-top: 1px solid var(--line);
-  padding: 2.2rem 0;
-  color: var(--muted);
-}
-footer {
-  padding: 0 0 2rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-@media (hover: hover) {
-  .actions a:hover, .nav a:hover {
-    transform: translateY(-2px);
-    border-color: rgba(214, 255, 74, 0.7);
-    box-shadow: 0 10px 30px rgba(214, 255, 74, 0.12);
-  }
-}
-@media (max-width: 860px) {
-  .hero, .bento, .rail { grid-template-columns: 1fr; }
-  .tile.wide { grid-column: auto; }
-  .hero { min-height: auto; padding-top: 2.4rem; }
-  .actions a { width: 100%; text-align: center; }
-  .bar { border-radius: 1.2rem; align-items: flex-start; flex-direction: column; }
-  .rail::before { display: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .aurora { animation: none; }
-  html { scroll-behavior: auto; }
-  .actions a, .nav a { transition: none; }
-}
-</style>
+<link rel="stylesheet" href="site.css">
 </head>
-<body>
+<body data-page="home">
 <div class="aurora"></div>
 <div class="grain"></div>
 <div class="wrap">
   <header class="bar">
-    <a class="word" href="#top">QuickStorageHealthCheck</a>
+    <a class="word" href="index.html">QuickStorageHealthCheck</a>
     <nav class="nav">
-      <a href="https://github.com/sujanchandray/storage-health-check/releases/latest/download/StorageHealthCheck-Windows.zip">Windows</a>
-      <a href="https://github.com/sujanchandray/storage-health-check/releases/latest/download/StorageHealthCheck-Mac.zip">Mac</a>
+      <a href="#expertise" aria-current="page">Expertise</a>
+      <a href="jobs.html">Jobs</a>
+      <a href="post.html">Post a job</a>
+      <a href="account.html">Account</a>
+      <a href="#tool">Free tool</a>
     </nav>
   </header>
   <main id="top">
     <section class="hero">
-      <div>
-        <h1>QuickStorage<br><em>Health</em>Check</h1>
+      <p class="eyebrow">Work platform</p>
+      <h1>Find work in<br><em>forensics</em></h1>
+      <p class="lede">Clients post jobs. Specialists send proposals and talk on the job. A new job shows up as soon as it is posted.</p>
+      <div class="actions">
+        <a href="jobs.html">Browse jobs</a>
+        <a class="ghost" href="post.html">Post a job</a>
+      </div>
+    </section>
+    <section class="section" id="expertise" aria-label="Expertise">
+      <h2>Expertise</h2>
+      <div class="expertise">
+        <a class="tile" href="jobs.html?category=Windows%20forensics">
+          <p class="eyebrow">01</p>
+          <h2>Windows forensics</h2>
+          <p>Disk, registry, and Windows artifact review.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Memory%20forensics">
+          <p class="eyebrow">02</p>
+          <h2>Memory forensics</h2>
+          <p>What was in memory when a system was captured.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Network%20forensics">
+          <p class="eyebrow">03</p>
+          <h2>Network forensics</h2>
+          <p>Traffic, logs, and how a system was reached.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Mobile%20forensics">
+          <p class="eyebrow">04</p>
+          <h2>Mobile forensics</h2>
+          <p>Phones and the records they keep.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=E-mail%20forensics">
+          <p class="eyebrow">05</p>
+          <h2>E-mail forensics</h2>
+          <p>Headers, mailboxes, and message history.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=USB%20drive%20forensics">
+          <p class="eyebrow">06</p>
+          <h2>USB drive forensics</h2>
+          <p>Removable disks and what was copied.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Anti-forensics">
+          <p class="eyebrow">07</p>
+          <h2>Anti-forensics</h2>
+          <p>Recognizing attempts to hide or alter evidence during an investigation.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Linux%20forensics">
+          <p class="eyebrow">08</p>
+          <h2>Linux forensics</h2>
+          <p>Logs, filesystems, and Linux host activity.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Cloud%20forensics">
+          <p class="eyebrow">09</p>
+          <h2>Cloud forensics</h2>
+          <p>Accounts, storage, and cloud audit trails.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Malware%20analysis">
+          <p class="eyebrow">10</p>
+          <h2>Malware analysis</h2>
+          <p>What a suspicious program does.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Incident%20response">
+          <p class="eyebrow">11</p>
+          <h2>Incident response</h2>
+          <p>Contain an incident and find what happened.</p>
+        </a>
+        <a class="tile" href="jobs.html?category=Software%20testing">
+          <p class="eyebrow">12</p>
+          <h2>Software testing</h2>
+          <p>Check that software behaves as intended.</p>
+        </a>
+      </div>
+    </section>
+    <section class="section" id="tool">
+      <div class="tool">
+        <p class="eyebrow">Free tool</p>
+        <h2>QuickStorage<em class="display">Health</em>Check</h2>
         <p class="lede">Read the health log on a hard disk, SSD, USB drive, or memory card. The report opens in the browser on that computer.</p>
         <div class="actions">
           <a href="https://github.com/sujanchandray/storage-health-check/releases/latest/download/StorageHealthCheck-Windows.zip">Download for Windows</a>
           <a class="ghost" href="https://github.com/sujanchandray/storage-health-check/releases/latest/download/StorageHealthCheck-Mac.zip">Download for Mac</a>
         </div>
         <p class="trust">This website does not read your disk. The check runs on the computer after you install it.</p>
-      </div>
-      <aside class="card" aria-label="Example report">
-        <p class="eyebrow">Example report</p>
-        <p class="score">98%</p>
-        <p class="ok">OK</p>
-        <div class="rows">
-          <div class="row"><span>Health</span><strong>98%</strong></div>
-          <div class="row"><span>Result</span><strong>OK</strong></div>
-          <div class="row"><span>Performance</span><strong>Critical</strong></div>
-          <div class="row"><span>Temperature now</span><strong>43 °C</strong></div>
-          <div class="row"><span>Highest</span><strong>83 °C</strong></div>
+        <div class="rail">
+          <article class="step">
+            <div class="num">01</div>
+            <h3>Unzip</h3>
+            <p>Download the file for your computer and unzip it.</p>
+          </article>
+          <article class="step">
+            <div class="num">02</div>
+            <h3>Run the setup</h3>
+            <p>On Windows, double-click StorageHealthCheck-Setup.cmd. On a Mac, double-click check-ssd-health.command.</p>
+          </article>
+          <article class="step">
+            <div class="num">03</div>
+            <h3>Approve</h3>
+            <p>Approve the administrator prompt. The report opens in the browser on that computer.</p>
+          </article>
         </div>
-      </aside>
-    </section>
-    <section class="bento" aria-label="What the report shows">
-      <article class="tile wide">
-        <p class="eyebrow">Health</p>
-        <h2>A percent from the drive’s own log</h2>
-        <p>Wear and error counts set the health percent. A slow response stays on its own line.</p>
-      </article>
-      <article class="tile">
-        <p class="eyebrow">Performance</p>
-        <h2>Kept separate</h2>
-        <p>The slowest response Windows has recorded, labeled as that reading, not the usual speed.</p>
-      </article>
-      <article class="tile">
-        <p class="eyebrow">Temperature</p>
-        <h2>Now and highest</h2>
-        <p>The report prints the temperature now and the highest temperature the drive has recorded.</p>
-      </article>
-      <article class="tile">
-        <p class="eyebrow">Forecast</p>
-        <h2>What the numbers mean</h2>
-        <p>A short note connects wear, a slow response, and unexpected shutdowns. It does not name a failure date.</p>
-      </article>
-      <article class="tile">
-        <p class="eyebrow">Warranty</p>
-        <h2>Not stored on the drive</h2>
-        <p>The report shows the maker, model, and serial, plus that maker’s warranty page. The expiry date is not on the drive.</p>
-      </article>
-    </section>
-    <section class="install">
-      <h2>Install</h2>
-      <div class="rail">
-        <article class="step">
-          <div class="num">01</div>
-          <h3>Unzip</h3>
-          <p>Download the file for your computer and unzip it.</p>
-        </article>
-        <article class="step">
-          <div class="num">02</div>
-          <h3>Run the setup</h3>
-          <p>On Windows, double-click StorageHealthCheck-Setup.cmd. On a Mac, double-click check-ssd-health.command.</p>
-        </article>
-        <article class="step">
-          <div class="num">03</div>
-          <h3>Approve</h3>
-          <p>Approve the administrator prompt. The report opens in the browser on that computer.</p>
-        </article>
       </div>
     </section>
     <section class="close">
