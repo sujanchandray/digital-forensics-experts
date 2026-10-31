@@ -79,7 +79,13 @@ body {
 }
 .nav a { padding: 0.35rem 0.75rem; font-size: 0.86rem; }
 .nav a[aria-current="page"] { border-color: var(--lime); color: var(--lime); }
-.hero { padding: 3.2rem 0 1rem; }
+.hero {
+  padding: 4.6rem 0 1.4rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 h1 {
   margin: 0;
   font-size: clamp(3.2rem, 6vw, 5.6rem);
@@ -87,7 +93,9 @@ h1 {
   letter-spacing: -0.055em;
   font-weight: 600;
 }
+.hero h1, .hero .lede { margin-left: auto; margin-right: auto; }
 .hero h1 { max-width: 12ch; }
+.hero .actions { justify-content: center; }
 h1 em, .display {
   font-family: Fraunces, Georgia, serif;
   font-style: italic;
@@ -253,7 +261,8 @@ textarea { min-height: 8rem; resize: vertical; }
 }
 @media (max-width: 860px) {
   .expertise, .rail, .checks, .tool-top { grid-template-columns: 1fr; }
-  .hero { padding-top: 2.2rem; }
+  .hero { padding-top: 2.6rem; }
+  .hero .actions { width: min(22rem, 100%); flex-direction: column; align-items: stretch; }
   .actions a, button.primary { width: 100%; text-align: center; }
   .bar { border-radius: 1.2rem; align-items: flex-start; flex-direction: column; }
   .rail::before { display: none; }
