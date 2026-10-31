@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post a job · DigitalForensicsExperts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,560&family=Outfit:wght@380;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body data-page="post">
+<div class="aurora"></div>
+<div class="grain"></div>
+<div class="wrap">
+  <header class="bar">
+    <div class="brand">
+      <div class="history">
+        <button type="button" class="arrow" aria-label="Back" onclick="history.back()">←</button>
+        <button type="button" class="arrow" aria-label="Forward" onclick="history.forward()">→</button>
+      </div>
+      <a class="word" href="./">DigitalForensicsExperts</a>
+    </div>
+    <nav class="nav">
+      <a href="./">Expertise</a>
+      <a href="jobs.html">Jobs</a>
+      <a href="post.html" aria-current="page">Post a job</a>
+      <a href="account.html">Account</a>
+      <a href="./#tool">Free tool</a>
+    </nav>
+  </header>
+  <main class="section page-title">
+    <p class="eyebrow">Hiring</p>
+    <h1>Post a job</h1>
+    <p id="post-note" class="notice">The board is not connected yet.</p>
+    <form id="post-form" class="stack" hidden>
+      <label>Title<input name="title" required maxlength="140"></label>
+      <label>Category
+        <select name="category" required>
+          <option>Windows forensics</option>
+          <option>Memory forensics</option>
+          <option>Network forensics</option>
+          <option>Mobile forensics</option>
+          <option>E-mail forensics</option>
+          <option>USB drive forensics</option>
+          <option>Anti-forensics</option>
+          <option>Linux forensics</option>
+          <option>Cloud forensics</option>
+          <option>Malware analysis</option>
+          <option>Incident response</option>
+          <option>Software testing</option>
+        </select>
+      </label>
+      <label>Description<textarea name="description" required></textarea></label>
+      <button class="primary" type="submit">Publish job</button>
+    </form>
+  </main>
+  <footer>© 2026 Sujan Chandra Ray. All rights reserved.</footer>
+</div>
+<script src="config.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

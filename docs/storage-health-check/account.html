@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Account · DigitalForensicsExperts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,560&family=Outfit:wght@380;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body data-page="account">
+<div class="aurora"></div>
+<div class="grain"></div>
+<div class="wrap">
+  <header class="bar">
+    <div class="brand">
+      <div class="history">
+        <button type="button" class="arrow" aria-label="Back" onclick="history.back()">←</button>
+        <button type="button" class="arrow" aria-label="Forward" onclick="history.forward()">→</button>
+      </div>
+      <a class="word" href="./">DigitalForensicsExperts</a>
+    </div>
+    <nav class="nav">
+      <a href="./">Expertise</a>
+      <a href="jobs.html">Jobs</a>
+      <a href="post.html">Post a job</a>
+      <a href="account.html" aria-current="page">Account</a>
+      <a href="./#tool">Free tool</a>
+    </nav>
+  </header>
+  <main class="section page-title">
+    <div id="account">
+      <p class="notice">The board is not connected yet.</p>
+    </div>
+  </main>
+  <footer>© 2026 Sujan Chandra Ray. All rights reserved.</footer>
+</div>
+<template id="signed-out">
+  <p class="eyebrow">Account</p>
+  <h1>Sign in</h1>
+  <p class="form-note notice"></p>
+  <div id="sign-in-panel">
+    <form id="sign-in-form" class="stack">
+      <label>Email<input name="email" type="email" autocomplete="username" required></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+    <p><button class="ghost" id="show-sign-up" type="button">Create an account</button></p>
+  </div>
+  <div id="sign-up-panel" hidden>
+    <form id="sign-up-form" class="stack">
+      <label>Name<input name="display_name" autocomplete="name" required></label>
+      <label>Email<input name="email" type="email" autocomplete="username" required></label>
+      <label>Password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label>
+      <div class="roles">
+        <label><input type="radio" name="role" value="client" required> Hiring</label>
+        <label><input type="radio" name="role" value="professional" checked> Available for work</label>
+      </div>
+      <div class="checks expertise-pick">
+        <label><input type="checkbox" name="expertise" value="Windows forensics"> Windows forensics</label>
+        <label><input type="checkbox" name="expertise" value="Memory forensics"> Memory forensics</label>
+        <label><input type="checkbox" name="expertise" value="Network forensics"> Network forensics</label>
+        <label><input type="checkbox" name="expertise" value="Mobile forensics"> Mobile forensics</label>
+        <label><input type="checkbox" name="expertise" value="E-mail forensics"> E-mail forensics</label>
+        <label><input type="checkbox" name="expertise" value="USB drive forensics"> USB drive forensics</label>
+        <label><input type="checkbox" name="expertise" value="Anti-forensics"> Anti-forensics</label>
+        <label><input type="checkbox" name="expertise" value="Linux forensics"> Linux forensics</label>
+        <label><input type="checkbox" name="expertise" value="Cloud forensics"> Cloud forensics</label>
+        <label><input type="checkbox" name="expertise" value="Malware analysis"> Malware analysis</label>
+        <label><input type="checkbox" name="expertise" value="Incident response"> Incident response</label>
+        <label><input type="checkbox" name="expertise" value="Software testing"> Software testing</label>
+      </div>
+      <button class="primary" type="submit">Create account</button>
+    </form>
+    <p><button class="ghost" id="show-sign-in" type="button">I already have an account</button></p>
+  </div>
+</template>
+<template id="profile-form-template">
+  <p class="eyebrow">Account</p>
+  <h1>Your profile</h1>
+  <form class="stack">
+    <label>Email<input name="email" type="email" readonly></label>
+    <label>Name<input name="display_name" required></label>
+    <div class="roles">
+      <label><input type="radio" name="role" value="client"> Hiring</label>
+      <label><input type="radio" name="role" value="professional" checked> Available for work</label>
+    </div>
+    <div class="checks expertise-pick">
+      <label><input type="checkbox" name="expertise" value="Windows forensics"> Windows forensics</label>
+      <label><input type="checkbox" name="expertise" value="Memory forensics"> Memory forensics</label>
+      <label><input type="checkbox" name="expertise" value="Network forensics"> Network forensics</label>
+      <label><input type="checkbox" name="expertise" value="Mobile forensics"> Mobile forensics</label>
+      <label><input type="checkbox" name="expertise" value="E-mail forensics"> E-mail forensics</label>
+      <label><input type="checkbox" name="expertise" value="USB drive forensics"> USB drive forensics</label>
+      <label><input type="checkbox" name="expertise" value="Anti-forensics"> Anti-forensics</label>
+      <label><input type="checkbox" name="expertise" value="Linux forensics"> Linux forensics</label>
+      <label><input type="checkbox" name="expertise" value="Cloud forensics"> Cloud forensics</label>
+      <label><input type="checkbox" name="expertise" value="Malware analysis"> Malware analysis</label>
+      <label><input type="checkbox" name="expertise" value="Incident response"> Incident response</label>
+      <label><input type="checkbox" name="expertise" value="Software testing"> Software testing</label>
+    </div>
+    <p class="form-note notice"></p>
+    <button class="primary" type="submit">Save profile</button>
+  </form>
+  <p><button class="ghost" id="cancel-session" type="button">Sign out</button></p>
+</template>
+<script src="config.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
