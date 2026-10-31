@@ -139,6 +139,21 @@ class HealthLogTests(unittest.TestCase):
     def test_remaining_life_estimate(self):
         self.assertEqual(ssd_health.remaining_life_hours(2, 3273), 3273 * 98 / 2)
 
+    def test_critical_performance_includes_cause_and_steps(self):
+        guides = ssd_health.critical_guides(
+            "ok",
+            ["the drive's own health log does not report a failure"],
+            "critical",
+            {"unsafe_shutdowns": 293},
+            {"read_ms": 320, "write_ms": 40, "power_changed": True, "firmware_limited": True},
+        )
+        self.assertEqual(guides[0]["name"], "Performance")
+        self.assertIn("320 ms", guides[0]["cause"])
+        self.assertIn("293 unsafe shutdowns", guides[0]["cause"])
+        self.assertTrue(any("Copy files" in step for step in guides[0]["steps"]))
+        self.assertTrue(any("Start menu" in step for step in guides[0]["steps"]))
+        self.assertEqual(ssd_health.critical_guides("ok", [], "ok", {}, {"read_ms": 40}) , [])
+
     def test_forecast_connects_wear_and_restarts(self):
         lines = ssd_health.forecast_lines(98, "critical", 292, [], True, True)
         text = "\n".join(lines)

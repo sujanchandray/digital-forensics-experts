@@ -30,7 +30,13 @@ foreach ($copying in @(
 $python = $null
 $py = Get-Command py -ErrorAction SilentlyContinue
 if ($py) {
-    $python = & py -3 -c "import sys; print(sys.executable)"
+    $out = Join-Path $env:TEMP "qshc-python-path.txt"
+    if (Test-Path $out) { Remove-Item -Force $out }
+    Start-Process -FilePath $py.Source -ArgumentList "-3","-c","import sys; print(sys.executable)" -WindowStyle Hidden -Wait -RedirectStandardOutput $out | Out-Null
+    if (Test-Path $out) {
+        $python = (Get-Content -LiteralPath $out -ErrorAction SilentlyContinue | Select-Object -First 1)
+        if ($python) { $python = $python.Trim() }
+    }
 }
 if (-not $python -or -not (Test-Path $python)) {
     $embed = Join-Path $dest "python"
@@ -42,6 +48,8 @@ if (-not $python -or -not (Test-Path $python)) {
         Expand-Archive -Force -Path $zip -DestinationPath $embed
     }
 }
+$pythonw = Join-Path (Split-Path -Parent $python) "pythonw.exe"
+if (Test-Path $pythonw) { $python = $pythonw }
 
 $shortcut = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\QuickStorageHealthCheck.lnk"
 $oldShortcut = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Storage Health Check.lnk"
@@ -55,6 +63,6 @@ $link.Save()
 if ((Test-Path $oldShortcut) -and ($oldShortcut -ne $shortcut)) {
     Remove-Item -Force $oldShortcut
 }
-Write-Output "QuickStorageHealthCheck is in the Start menu."
-Write-Output "Setup finished. Approve the administrator prompt. The report opens in the browser on this computer."
-Start-Process -FilePath $python -ArgumentList "`"$dest\ssd_health.py`"" -WorkingDirectory $dest
+$ready = Join-Path $env:TEMP "QuickStorageHealthCheck.ready"
+$proc = Start-Process -FilePath $python -ArgumentList @("`"$dest\ssd_health.py`"","--ready",$ready) -WorkingDirectory $dest -WindowStyle Hidden -PassThru
+Set-Content -Path (Join-Path $env:TEMP "QuickStorageHealthCheck.pid") -Value $proc.Id -Encoding ASCII

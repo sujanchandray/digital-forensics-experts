@@ -269,7 +269,7 @@ def elevate_and_exit() -> None:
     info.lpVerb = "runas"
     info.lpFile = sys.executable
     info.lpParameters = " ".join(f'"{arg}"' for arg in sys.argv)
-    info.nShow = 1
+    info.nShow = 0
     if not shell32.ShellExecuteExW(ctypes.byref(info)):
         print(f"Administrator approval was not granted ({ctypes.WinError(ctypes.get_last_error()).strerror}).")
         raise SystemExit(1)
@@ -635,6 +635,141 @@ def warranty_lines(model: str, serial: str) -> list[str]:
     return lines
 
 
+def _slowest_ms(read_ms, write_ms) -> int | None:
+    samples = []
+    for value in (read_ms, write_ms):
+        if value is None or value == "":
+            continue
+        samples.append(int(value))
+    if not samples:
+        return None
+    return max(samples)
+
+
+def critical_guides(
+    level: str,
+    reasons: list[str],
+    performance: str | None,
+    health: dict,
+    context: dict,
+) -> list[dict]:
+    guides = []
+    slowest = _slowest_ms(context.get("read_ms"), context.get("write_ms"))
+    if performance == "critical" and slowest is not None:
+        cause = (
+            f"Windows recorded a response of {slowest} ms. "
+            "A usual response is under 50 ms. Anything slower than 250 ms is critical "
+            "because the drive paused during a read."
+        )
+        shutdowns = health.get("unsafe_shutdowns")
+        if shutdowns is not None and int(shutdowns) >= 20:
+            cause += (
+                f" This drive has {int(shutdowns)} unsafe shutdowns. "
+                "Those are power cuts, and a power cut can leave the next read waiting."
+            )
+        steps = [
+            "Copy files you cannot replace onto another disk before relying on this one.",
+            "Shut down from the Start menu. Do not hold the power button.",
+        ]
+        if context.get("power_changed"):
+            steps.append(
+                "Keep the computer on its power adapter while copying. "
+                "The power source changed during this Windows start."
+            )
+        if context.get("firmware_limited"):
+            steps.append(
+                "Let the copy finish before unplugging. Firmware slowed the processor "
+                "during this Windows start, which stretches a slow read."
+            )
+        steps.append(
+            "Run this check again after the copy. If the slowest response is still "
+            "above 250 ms, use the warranty page and ask the maker to replace the drive."
+        )
+        guides.append({"name": "Performance", "cause": cause, "steps": steps})
+
+    text = " ".join(reasons)
+    if "media errors:" in text:
+        count = health.get("media_errors")
+        guides.append({
+            "name": "Media errors",
+            "cause": (
+                f"The drive reported {count} media errors. "
+                "It could not read data it had already stored."
+            ),
+            "steps": [
+                "Copy files you cannot replace now.",
+                "Stop saving new files on this drive.",
+                "Use the warranty page and ask the maker to replace the drive.",
+            ],
+        })
+    if "spare space" in text and ("below" in text or "at or below" in text):
+        guides.append({
+            "name": "Spare space",
+            "cause": (
+                f"Spare space is {health.get('available_spare')}% and the drive's own limit "
+                f"is {health.get('spare_threshold')}%. The reserve for worn storage cells is used up."
+            ),
+            "steps": [
+                "Copy files you cannot replace now.",
+                "Replace the drive. Use the warranty page.",
+            ],
+        })
+    if "life used" in text and level == "critical":
+        guides.append({
+            "name": "Life used",
+            "cause": (
+                f"Life used is {health.get('percent_used')}%. "
+                "The drive has consumed its rated write life."
+            ),
+            "steps": [
+                "Copy files you cannot replace now.",
+                "Replace the drive before it stops accepting writes. Use the warranty page.",
+            ],
+        })
+    if "temperature is" in text and level == "critical":
+        guides.append({
+            "name": "Temperature",
+            "cause": (
+                f"The drive reached {health.get('temperature_c')} C. "
+                "At 80 C or above the report marks temperature critical."
+            ),
+            "steps": [
+                "Set the computer on a hard desk and leave the vents clear.",
+                "Close heavy programs and wait until Temperature now is under 70 C, then run this check again.",
+                "If it returns to 80 C during light use, use the warranty page.",
+            ],
+        })
+    if "read-only mode" in text:
+        guides.append({
+            "name": "Read-only",
+            "cause": "The drive switched to read-only to protect the data that is left.",
+            "steps": [
+                "Copy files while the drive still allows reads.",
+                "Do not keep working from this drive. Replace it.",
+            ],
+        })
+    if "reliability has degraded" in text:
+        guides.append({
+            "name": "Reliability",
+            "cause": "The drive reports that its own reliability has degraded.",
+            "steps": [
+                "Copy files you cannot replace now.",
+                "Replace the drive. Use the warranty page.",
+            ],
+        })
+    if "backup power failed" in text:
+        guides.append({
+            "name": "Backup power",
+            "cause": "The drive's backup power failed, so a power cut can damage a write that was in progress.",
+            "steps": [
+                "Copy files you cannot replace now.",
+                "Shut down from the Start menu. Do not hold the power button.",
+                "Replace the drive. Use the warranty page.",
+            ],
+        })
+    return guides
+
+
 def forecast_lines(
     health_pct: int | None,
     performance: str | None,
@@ -824,6 +959,19 @@ def append_health(lines: list[str], health: dict, level: str, reasons: list[str]
         bool(context.get("firmware_limited")),
     )
     lines.extend(story)
+    guides = critical_guides(level, reasons, performance, health, context)
+    if guides:
+        lines.append("  Root cause")
+        for guide in guides:
+            lines.append(f"  - {guide['name']}. {guide['cause']}")
+        lines.append("  What to do")
+        seen = []
+        for guide in guides:
+            for step in guide["steps"]:
+                if step not in seen:
+                    seen.append(step)
+        for number, step in enumerate(seen, start=1):
+            lines.append(f"  {number}. {step}")
     return {
         "title": context.get("title") or context.get("model") or "Drive",
         "health_percent": pct,
@@ -832,6 +980,7 @@ def append_health(lines: list[str], health: dict, level: str, reasons: list[str]
         "facts": facts,
         "reasons": reasons,
         "forecast": [line[4:] for line in story if line.startswith("  - ")],
+        "guides": guides,
         "warranty": [line[2:] for line in warranty],
     }
 
@@ -1757,6 +1906,8 @@ html, body { margin: 0; background: #07080a; color: #f4f1ea; font-family: "Segoe
 .warranty { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 18px; }
 .warranty p:last-child { grid-column: 1 / -1; }
 a { color: #d6ff4a; }
+.steps { margin: 4px 0 0; padding-left: 1.15rem; }
+.steps li { margin: 0 0 3px; font-size: 12.5px; line-height: 1.35; }
 @media screen { body { padding: 28px 16px 40px; } .plate { max-width: 880px; margin-left: auto; margin-right: auto; } }
 @media print { body { padding: 0; } .plate { break-inside: avoid; } }
 """
@@ -1800,6 +1951,23 @@ def render_html(report_text: str) -> str:
         story = "".join(
             f'<p class="note">{html.escape(item)}</p>' for item in block.get("forecast") or []
         )
+        guides = block.get("guides") or []
+        guide_html = ""
+        if guides:
+            causes = "".join(
+                f'<p class="note"><span>{html.escape(guide["name"])}.</span> {html.escape(guide["cause"])}</p>'
+                for guide in guides
+            )
+            seen = []
+            for guide in guides:
+                for step in guide["steps"]:
+                    if step not in seen:
+                        seen.append(step)
+            actions = "".join(f"<li>{html.escape(step)}</li>" for step in seen)
+            guide_html = (
+                '<section class="bay"><h2>Root cause</h2>'
+                f"{causes}<h2>What to do</h2><ol class=\"steps\">{actions}</ol></section>"
+            )
         warranty = []
         for line in block.get("warranty") or []:
             if ": " in line:
@@ -1824,6 +1992,7 @@ def render_html(report_text: str) -> str:
             f'<section class="grid">{"".join(cells)}</section>'
             '<section class="bay"><h2>Notes</h2>'
             f'{"".join(notes)}<h2>What this means</h2>{story}</section>'
+            f"{guide_html}"
             f'<section class="bay"><h2>Warranty</h2><div class="warranty">{"".join(warranty)}</div></section>'
             "</article>"
         )
@@ -1849,7 +2018,7 @@ def serve_page(page: str) -> str:
         def log_message(self, format, *args):
             return
 
-    for port in (80, 8765):
+    for port in (80, 8765, 8766, 8767, 8770, 8772):
         try:
             server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
         except OSError:
@@ -1876,6 +2045,21 @@ def scan(do_filesystem_scan: bool) -> tuple[str, int]:
     return other_report()
 
 
+def ready_signal(args: list[str]) -> str:
+    if "--ready" in args:
+        index = args.index("--ready")
+        if index + 1 < len(args) and not args[index + 1].startswith("--"):
+            return args[index + 1]
+    found = os.environ.get("QSHC_READY")
+    if found:
+        return found
+    if os.name == "nt" and not (sys.stdin is not None and sys.stdin.isatty()):
+        temp = os.environ.get("TEMP") or os.environ.get("TMP")
+        if temp:
+            return str(Path(temp) / "QuickStorageHealthCheck.ready")
+    return ""
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv if argv is None else argv)
     kind = host_kind()
@@ -1892,21 +2076,28 @@ def main(argv: list[str] | None = None) -> int:
     page = render_html(report)
     PAGE_PATH.write_text(page, encoding="utf-8")
     print(report, end="")
+    url = ""
     if "--no-browser" not in args:
-        url = serve_page(page)
-        if url:
-            print(f"Report page: {url}")
-            try:
-                webbrowser.open(url)
-            except OSError:
-                pass
-    if "--serve" in args:
+        url = serve_page(page) or PAGE_PATH.resolve().as_uri()
+    ready = ready_signal(args)
+    if ready and url:
+        try:
+            Path(ready).write_text(url, encoding="utf-8")
+        except OSError:
+            pass
+    if url:
+        print(f"Report page: {url}")
+        try:
+            webbrowser.open(url)
+        except OSError:
+            pass
+    if "--serve" in args or ("--no-wait" not in args and not (sys.stdin is not None and sys.stdin.isatty())):
         threading.Event().wait()
-    elif "--no-wait" not in args and sys.stdin is not None and sys.stdin.isatty():
+    elif "--no-wait" not in args:
         try:
             input("Press Enter to close.")
         except EOFError:
-            pass
+            threading.Event().wait()
     return code
 
 
