@@ -1724,48 +1724,115 @@ def other_report() -> tuple[str, int]:
     return finish(lines), 3
 
 
+REPORT_STYLE = """
+@page { size: letter; margin: 0.4in; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html, body { margin: 0; background: #07080a; color: #f4f1ea; font-family: "Segoe UI", sans-serif; }
+.plate {
+  border: 1px solid rgba(244, 241, 234, 0.16);
+  border-radius: 16px;
+  padding: 16px 18px 14px;
+  background: linear-gradient(180deg, rgba(214, 255, 74, 0.07), transparent 26%), #101114;
+}
+.plate + .plate { margin-top: 14px; }
+.head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-end; border-bottom: 1px solid rgba(244, 241, 234, 0.14); padding-bottom: 8px; }
+.stamp { margin: 0; font-family: Consolas, "Cascadia Mono", monospace; letter-spacing: 0.16em; font-size: 11px; color: #d6ff4a; }
+.local { margin: 4px 0 0; color: #a8a297; font-size: 12px; }
+.drive { margin: 0; font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; letter-spacing: 0.04em; text-align: right; }
+.readout { display: flex; align-items: flex-end; justify-content: space-between; margin: 12px 0 14px; }
+.score { margin: 0; font-size: 64px; line-height: 0.92; letter-spacing: -0.05em; font-weight: 600; }
+.lamp { margin: 0 0 6px; font-family: Consolas, "Cascadia Mono", monospace; letter-spacing: 0.16em; font-size: 13px; font-weight: 700; }
+.lamp::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+.ok { color: #d6ff4a; }
+.warning { color: #ffb020; }
+.critical { color: #ff5d4a; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.cell { border: 1px solid rgba(244, 241, 234, 0.14); border-radius: 10px; padding: 6px 8px 7px; background: rgba(244, 241, 234, 0.035); }
+.cell span, .bay h2 { display: block; margin: 0; font-family: Consolas, "Cascadia Mono", monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #a8a297; font-weight: 400; }
+.cell strong { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; }
+.bay { margin-top: 10px; border-top: 1px solid rgba(244, 241, 234, 0.14); padding-top: 7px; }
+.bay h2 { margin-bottom: 4px; }
+.note { margin: 0 0 3px; font-size: 12.5px; line-height: 1.35; }
+.note span { color: #a8a297; }
+.warranty { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 18px; }
+.warranty p:last-child { grid-column: 1 / -1; }
+a { color: #d6ff4a; }
+@media screen { body { padding: 28px 16px 40px; } .plate { max-width: 880px; margin-left: auto; margin-right: auto; } }
+@media print { body { padding: 0; } .plate { break-inside: avoid; } }
+"""
+NOTE_FACTS = {"Slowest response", "Temperature limit"}
+
+
+def _tone(value: str) -> str:
+    key = value.strip().lower()
+    if key in ("ok", "warning", "critical"):
+        return f" {key}"
+    return ""
+
+
+def _linked(value: str) -> str:
+    if value.startswith("http://") or value.startswith("https://"):
+        safe = html.escape(value, quote=True)
+        return f'<a href="{safe}">{safe}</a>'
+    return html.escape(value)
+
+
 def render_html(report_text: str) -> str:
-    cards = []
+    plates = []
     for block in REPORT_BLOCKS:
         percent = block.get("health_percent")
         percent_text = "Not available" if percent is None else f"{percent}%"
         level = str(block.get("level") or "")
-        facts = "".join(
-            "<div class=\"fact\"><span>{0}</span><strong>{1}</strong></div>".format(
-                html.escape(label), html.escape(value)
+        cells = []
+        notes = []
+        for label, value in block.get("facts") or []:
+            if label in NOTE_FACTS or len(value) > 42:
+                notes.append(
+                    f'<p class="note"><span>{html.escape(label)}.</span> {html.escape(value)}</p>'
+                )
+                continue
+            cells.append(
+                f'<div class="cell"><span>{html.escape(label)}</span>'
+                f'<strong class="{_tone(value).strip()}">{html.escape(value)}</strong></div>'
             )
-            for label, value in block.get("facts") or []
+        for item in block.get("reasons") or []:
+            notes.append(f'<p class="note">{html.escape(item)}</p>')
+        story = "".join(
+            f'<p class="note">{html.escape(item)}</p>' for item in block.get("forecast") or []
         )
-        reasons = "".join(f"<li>{html.escape(item)}</li>" for item in block.get("reasons") or [])
-        story = "".join(f"<li>{html.escape(item)}</li>" for item in block.get("forecast") or [])
-        warranty = "".join(f"<p>{html.escape(item)}</p>" for item in block.get("warranty") or [])
-        cards.append(
-            "<article>"
-            f"<h2>{html.escape(str(block.get('title') or 'Drive'))}</h2>"
-            f"<p class=\"score\">{html.escape(percent_text)}</p>"
-            f"<p class=\"level {html.escape(level)}\">{html.escape(level.upper())}</p>"
-            f"<div class=\"facts\">{facts}</div>"
-            f"<ul>{reasons}</ul>"
-            "<h3>What this means</h3>"
-            f"<ul>{story}</ul>"
-            "<h3>Warranty</h3>"
-            f"{warranty}"
+        warranty = []
+        for line in block.get("warranty") or []:
+            if ": " in line:
+                label, value = line.split(": ", 1)
+            else:
+                label, value = "Note", line
+            warranty.append(
+                f'<p class="note"><span>{html.escape(label)}.</span> {_linked(value)}</p>'
+            )
+        plates.append(
+            '<article class="plate">'
+            '<header class="head"><div>'
+            f'<p class="stamp">{html.escape(PRODUCT_NAME.upper())}</p>'
+            '<p class="local">This page is on this computer. It is not uploaded.</p>'
+            "</div>"
+            f'<p class="drive">{html.escape(str(block.get("title") or "Drive"))}</p>'
+            "</header>"
+            '<section class="readout">'
+            f'<p class="score">{html.escape(percent_text)}</p>'
+            f'<p class="lamp {html.escape(level)}">{html.escape(level.upper())}</p>'
+            "</section>"
+            f'<section class="grid">{"".join(cells)}</section>'
+            '<section class="bay"><h2>Notes</h2>'
+            f'{"".join(notes)}<h2>What this means</h2>{story}</section>'
+            f'<section class="bay"><h2>Warranty</h2><div class="warranty">{"".join(warranty)}</div></section>'
             "</article>"
         )
-    body = "\n".join(cards) or f"<pre>{html.escape(report_text)}</pre>"
+    body = "\n".join(plates) or f'<pre class="plate">{html.escape(report_text)}</pre>'
     return (
         "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-        f"<title>{PRODUCT_NAME}</title><style>"
-        "body{font-family:Georgia,serif;margin:0;background:#f4f1ea;color:#1c1915}"
-        "header,main{max-width:46rem;margin:0 auto;padding:1.5rem}"
-        "article{background:#fff;border:1px solid #ddd6c8;padding:1.4rem;margin:1rem 0}"
-        ".score{font-size:3rem;margin:0}"
-        ".level.ok{color:#1f6b3a}.level.warning{color:#8a5a00}.level.critical{color:#8d1d1d}"
-        ".fact{display:flex;justify-content:space-between;gap:1rem;padding:.4rem 0;border-bottom:1px solid #eee}"
-        "</style></head><body><header><h1>"
-        f"{PRODUCT_NAME}</h1><p>This page is on this computer. It is not uploaded.</p>"
-        f"</header><main>{body}</main></body></html>"
+        f"<title>{html.escape(PRODUCT_NAME)}</title><style>{REPORT_STYLE}</style></head>"
+        f"<body><main>{body}</main></body></html>"
     )
 
 

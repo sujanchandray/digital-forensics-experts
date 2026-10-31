@@ -155,9 +155,9 @@ a.tile { display: block; color: inherit; text-decoration: none; }
 }
 .card {
   border: 1px solid var(--line);
-  border-radius: 1.4rem;
-  background: rgba(5, 5, 6, 0.45);
-  padding: 1.2rem 1.2rem 1rem;
+  border-radius: 1.25rem;
+  background: rgba(246, 243, 236, 0.03);
+  padding: 1.2rem 1.15rem 1.25rem;
 }
 .card p { margin: 0.2rem 0; }
 .score {
