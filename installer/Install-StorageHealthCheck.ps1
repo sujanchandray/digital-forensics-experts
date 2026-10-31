@@ -1,14 +1,23 @@
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (Test-Path (Join-Path $here "ssd_health.py")) {
+    $root = $here
+} else {
+    $root = Split-Path -Parent (Split-Path -Parent $here)
+}
 $dest = Join-Path $env:LOCALAPPDATA "QuickStorageHealthCheck"
 $tools = Join-Path $dest "tools"
 New-Item -ItemType Directory -Force -Path $tools | Out-Null
 Copy-Item -Force (Join-Path $root "ssd_health.py") $dest
 $smartctl = Join-Path $root "tools\smartctl.exe"
+if (-not (Test-Path $smartctl)) {
+    $smartctl = Join-Path $root "smartctl.exe"
+}
 if (Test-Path $smartctl) {
     Copy-Item -Force $smartctl (Join-Path $tools "smartctl.exe")
 }
 foreach ($copying in @(
+    (Join-Path $root "COPYING.txt"),
     (Join-Path $root "tools\COPYING.txt"),
     (Join-Path $root "tools\smartmontools\doc\COPYING.txt")
 )) {
@@ -47,4 +56,5 @@ if ((Test-Path $oldShortcut) -and ($oldShortcut -ne $shortcut)) {
     Remove-Item -Force $oldShortcut
 }
 Write-Output "QuickStorageHealthCheck is in the Start menu."
-Write-Output "Open it, approve the administrator prompt, and the report opens in the browser on this computer."
+Write-Output "Setup finished. Approve the administrator prompt. The report opens in the browser on this computer."
+Start-Process -FilePath $python -ArgumentList "`"$dest\ssd_health.py`"" -WorkingDirectory $dest
