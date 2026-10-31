@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+ssd-health-report.txt
+ssd-health-report.html
+ssd-health-history.txt
+tools/smartmontools/
+tools/smartmontools-*.exe
+dist/
